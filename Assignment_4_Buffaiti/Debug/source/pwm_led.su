@@ -1,0 +1,2 @@
+pwm_led.c:14:6:Init_LED_PWM	16	static
+pwm_led.c:63:6:LED_PWM	56	static

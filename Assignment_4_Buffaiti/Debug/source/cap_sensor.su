@@ -1,0 +1,2 @@
+cap_sensor.c:18:6:CAP_Init	8	static
+cap_sensor.c:47:10:CAP_Scan	16	static
