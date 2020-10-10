@@ -23,6 +23,8 @@ Source Code for this assignment can be found under source/ , Interrupts have bee
 - <b>switch.h - Header file of switch.c defining functions to access an external Push Button </b>
 - <b>switch.c - File containing definitions for clock gating and accessing an External Push Button </b>
     - <b> PTA5 must be used to Connect the Switch Wiring, along with Necessary GROUND and POWER </b>
+- <b>temp_systick.h - Header file of temp_systick.c defining functions to Instantiate </b>
+- <b>switch.c - File containing definitions for clock gating and accessing an External Push Button </b>
 
 
 ## Project Comments
