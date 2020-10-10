@@ -16,7 +16,7 @@ Source Code for this assignment can be found under source/ , Interrupts have bee
 - <b>led.c - File containing LED Clock Gating Initialization and function which sets LED Color </b>
 - <b>statemachine.h - Header file of statemachine.c defining State Machine Function Prototypes and Interrupts </b>
 - <b>statemachine.c - File containing Statemachine functionalities implemented in accordance to Traffic Light State Machine </b>
-- ![State Machine](master/StateMachine.png) </b>
+- ![State Machine](../StateMachine.png) </b>
 - <b>cap_sensor.h - Header file of delay.c defining functions to access and run the capacitive sensor </b>
 - <b>cap_sensor.c - File containing definitions for clock gating and accessing the Capacitive Sensor </b>
 - <b>switch.h - Header file of switch.c defining functions to access an external Push Button </b>
