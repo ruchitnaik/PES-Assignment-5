@@ -37,7 +37,7 @@ void Init_LED_PWM(uint16_t period) {
 
 	// Configure TPM
 	// Setting Clock Source at CPU rate - 48 Mhz
-	SIM->SOPT2 = (SIM_SOPT2_TPMSRC(1) | SIM_SOPT2_PLLFLLSEL_MASK);
+	SIM->SOPT2 |= (SIM_SOPT2_TPMSRC(1) | SIM_SOPT2_PLLFLLSEL_MASK);
 
 	TPM0->MOD = period-1;
 	TPM2->MOD = period-1;
@@ -63,6 +63,9 @@ void Init_LED_PWM(uint16_t period) {
 	// Start TPM
 	TPM2->SC |= TPM_SC_CMOD(1);
 	TPM0->SC |= TPM_SC_CMOD(1);
+#ifdef DEBUG
+	PRINTF("\n\r Clock Gating and Initialization of TPM for PORTB and PORTD Complete ");
+#endif
 }
 
 

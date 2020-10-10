@@ -1,0 +1,2 @@
+switch.c:18:6:Init_Switch	0	static
+switch.c:45:6:PORTA_IRQHandler	8	static

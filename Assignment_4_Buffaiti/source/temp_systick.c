@@ -15,6 +15,8 @@ volatile ticktime_t trans_tick;
 volatile ticktime_t trans_secs;
 volatile ticktime_t Timer_U32;
 
+volatile ticktime_t g_program_start;
+volatile ticktime_t g_timer_start;
 
 /*************************************************************************************************
                                 Functions
@@ -32,13 +34,18 @@ volatile ticktime_t Timer_U32;
 void SysTick_Init(void) {
 
 	SysTick->LOAD = (COUNT_PER_MS);  // 1000 Hz
-	NVIC_SetPriority(SysTick_IRQn, 2); // NVIC Interrupt Priority
-	SysTick->VAL = 0; // Clear Timer
-	SysTick->CTRL = SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk | SysTick_CTRL_CLKSOURCE_Msk ;  // Mask to Initialize TIcks, Enamble CTRL Mask and use Processer CLock Source of 48 Mhz
+	NVIC_SetPriority(SysTick_IRQn, 3); // NVIC Interrupt Priority // 3
 	NVIC_ClearPendingIRQ(SysTick_IRQn); // Clear Pending IRq's
 	NVIC_EnableIRQ(SysTick_IRQn);
+	SysTick->VAL = 0; // Clear Timer
+	SysTick->CTRL = SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk | SysTick_CTRL_CLKSOURCE_Msk ;  // Mask to Initialize TIcks, Enamble CTRL Mask and use Processer CLock Source of 48 Mhz
+
 	trans_tick = 0; // Extra Precaution during Initialization
 	Timer_U32 = 0; // Overall CLock - Initialization Precauton
+	g_program_start = g_timer_start = 0;
+#ifdef DEBUG
+	PRINTF("\n\r Clock Gating and Initialization of SysTick Complete ");
+#endif
 
 }
 
@@ -51,7 +58,7 @@ void SysTick_Init(void) {
 ​ * ​ ​ @return​ ​ none
 ​ */
 ticktime_t now() {
-	return Timer_U32;
+	return Timer_U32 - g_program_start;
 }
 
 
@@ -62,16 +69,7 @@ ticktime_t now() {
 ​ * ​ ​ @return​ ​ none
 ​ */
 void reset_timer() {
-	val = 0;
-	trans_tick = 0;
-	flag_100msec = 0;
-	flag_250msec = 0;
-	flag_750msec = 0;
-	flag_1000msec = 0;
-	flag_3000msec = 0;
-	flag_10000msec = 0;
-	flag_TimeoutSec = 0;
-	flag_Switch = 0;
+	g_timer_start = Timer_U32;
 }
 
 
@@ -82,7 +80,8 @@ void reset_timer() {
 ​ * ​ ​ @return​ ​ Integer - Number of Ticks
 ​ */
 ticktime_t get_timer() {
-	return trans_tick;
+
+	return (Timer_U32 - g_timer_start);
 }
 
 
@@ -94,45 +93,29 @@ ticktime_t get_timer() {
 ​ * ​ ​ @return​ ​ none
 ​ */
 void SysTick_Handler(){
-	Timer_U32++;
-	trans_tick++;
-	flag_100msec = 0;
 
+	Timer_U32++; // Keep Track of the total timer
+
+	/* A functionality which helps for smooth transition,
+	 * I found this gave me the smoothest transition
+	 */
 	if(Timer_U32 % 100 == 0){
 		val += 0.1;
 		if(val > 1) {
 			val = 1;
-			flag_break = 1;
 		}
-		flag_100msec = 1;
 	}
 
-	if(trans_tick % 250 == 0){
+	/* Functionality which is used to check Blinking required Crosswalk state */
+	if(Timer_U32 % 250 == 0){
 		flag_750msec = 0;
 		flag_250msec = 1;
 	}
 
-	if(trans_tick % 750  == 0){
+	if(Timer_U32 % 750  == 0){
 		flag_250msec = 0;
 		flag_750msec = 1;
 	}
-
-	if(trans_tick % 1000 == 0){
-		flag_1000msec = 1;
-	}
-
-	if(trans_tick % (WARN_TIMEOUT * 1000) == 0  ){
-		flag_3000msec = 1;
-	}
-
-	if(trans_tick % (ROUTINE_TIMEOUT * 1000) == 0){
-		flag_TimeoutSec = 1;
-	}
-
-	if(trans_tick % (CROSSWALK_TIMEOUT * 1000) == 0){
-		flag_10000msec = 1;
-	}
-
 }
 
 

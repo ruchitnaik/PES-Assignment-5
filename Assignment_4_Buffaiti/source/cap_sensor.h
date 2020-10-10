@@ -10,6 +10,7 @@
 
 
 #include "MKL25Z4.h"
+#include "statemachine.h"
 #include "stdint.h"
 #include "stdio.h"
 #include "fsl_debug_console.h"
@@ -36,12 +37,9 @@ void CAP_Init(void);
  *
 ​ * ​ ​ @param​ ​ void
 ​ *
-​ * ​ ​ @return​ ​ Scanned Value with OFFSET Subtracted
+​ * ​ ​ @return​ ​ Boolean if Touch within threshold
 ​ */
 uint16_t CAP_Scan(void);
 
-
-
-//void helper_CAP_Scan(volatile uint16_t val);
 
 #endif /* CAP_SENSOR_H_ */

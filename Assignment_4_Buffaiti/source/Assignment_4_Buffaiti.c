@@ -28,10 +28,37 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
  
+
+/******************************************************************************
+*​​Copyright​​ (C) ​​2020 ​​by ​​Arpit Savarkar
+*​​Redistribution,​​ modification ​​or ​​use ​​of ​​this ​​software ​​in​​source​ ​or ​​binary
+*​​forms​​ is​​ permitted​​ as​​ long​​ as​​ the​​ files​​ maintain​​ this​​ copyright.​​ Users​​ are
+*​​permitted​​ to ​​modify ​​this ​​and ​​use ​​it ​​to ​​learn ​​about ​​the ​​field​​ of ​​embedded
+*​​software. ​​Arpit Savarkar ​​and​ ​the ​​University ​​of ​​Colorado ​​are ​​not​ ​liable ​​for
+*​​any ​​misuse ​​of ​​this ​​material.
+*
+******************************************************************************/
 /**
- * @file    Assignment_4_Buffaiti.c
- * @brief   Application entry point.
- */
+ * @file Assignment_4_Buffaiti.c
+ * @brief Application entry point.
+ *
+ * This file provides functions and abstractions for Initializing Systick, Capacitive Touch,
+ * Switch and Calls State Machine Function
+ *
+ * @author Arpit Savarkar
+ * @date September 10 2020
+ * @version 1.0
+ *
+ *
+  Sources of Reference :
+  Textbooks : Embedded Systems Fundamentals with Arm Cortex-M based MicroControllers
+  I would like to thank the SA's of the course Rakesh Kumar, Saket Penurkar and Howdy Pierece for their
+  support to gain a deeper insight into State Machine Application
+*/
+
+
+
+
 #include <led.h>
 #include <stdio.h>
 #include "board.h"
@@ -41,7 +68,6 @@
 #include "MKL25Z4.h"
 #include "fsl_debug_console.h"
 
-/* TODO: insert other include files here. */
 #include "temp_systick.h"
 #include "statemachine.h"
 #include "switch.h"
@@ -61,17 +87,19 @@ int main(void) {
     /* Init FSL debug console. */
     BOARD_InitDebugConsole();
 #endif
-
-    PRINTF("\n\r Hello World ");
-
-    Init_LED_PWM(PWM_PERIOD);
+    /* Initializes Clock and related functionalities for SysTick */
     SysTick_Init();
+    /* Initializes Clock and related functionalities for using Switch to transition between states */
     Init_Switch();
+    /* Initializes Clock and related functionalities for using Capacitive Slider to transition between states */
     CAP_Init();
-
+    /* Initializes Clock and related functionalities and TPM Setting s for using PORTB and PORTD under PWM settings to
+     * operate the Red, Green and Blue LEDS's */
+    Init_LED_PWM(PWM_PERIOD);
+#ifdef DEBUG
+	PRINTF("\n\r Entering Into the State Machine");
+#endif
+	// Enters into the State Machine Function
     state_machine();
-
-//    PRINTF("\n\r Hello World ");
-
     return 0 ;
 }

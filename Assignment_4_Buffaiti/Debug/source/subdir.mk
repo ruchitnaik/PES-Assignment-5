@@ -5,7 +5,6 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../source/Assignment_4_Buffaiti.c \
-../source/SysTick_C_Timer.c \
 ../source/cap_sensor.c \
 ../source/led.c \
 ../source/mtb.c \
@@ -16,7 +15,6 @@ C_SRCS += \
 
 OBJS += \
 ./source/Assignment_4_Buffaiti.o \
-./source/SysTick_C_Timer.o \
 ./source/cap_sensor.o \
 ./source/led.o \
 ./source/mtb.o \
@@ -27,7 +25,6 @@ OBJS += \
 
 C_DEPS += \
 ./source/Assignment_4_Buffaiti.d \
-./source/SysTick_C_Timer.d \
 ./source/cap_sensor.d \
 ./source/led.d \
 ./source/mtb.d \

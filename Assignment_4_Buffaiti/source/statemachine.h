@@ -15,17 +15,18 @@
 
 
 /*************************************************************************************************
-                                #define ' s
+                                MACROS
 *************************************************************************************************/
 #ifdef DEBUG
-#define CROSSWALK_TIMEOUT 10
-#define ROUTINE_TIMEOUT 5
-#define WARN_TIMEOUT 3
+#define CROSSWALK_TIMEOUT 10000
+#define ROUTINE_TIMEOUT 5000
+#define WARN_TIMEOUT 3000
 #endif
 
 #ifdef PRODUCTION
-#define ROUTINE_TIMEOUT 20
-#define WARN_TIMEOUT 5
+#define CROSSWALK_TIMEOUT 10000
+#define ROUTINE_TIMEOUT 20000
+#define WARN_TIMEOUT 5000
 #endif
 
 #define MASK(x) (1UL << (x))
@@ -40,14 +41,8 @@
                                Global Variables
 *************************************************************************************************/
 extern volatile double val;
-extern volatile int flag_break;
-extern volatile int flag_100msec;
 extern volatile int flag_250msec;
 extern volatile int flag_750msec;
-extern volatile int flag_1000msec;
-extern volatile int flag_3000msec;
-extern volatile int flag_10000msec;
-extern volatile int flag_TimeoutSec;
 extern volatile int flag_Switch;
 extern volatile uint8_t flag;
 
@@ -68,11 +63,10 @@ typedef enum {
 typedef enum {
 
 	e_Void,
-	e_Transition,
-	e_Go,
-	e_Stop,
-	e_Warn,
-	e_PollTouch
+	e_TransitionTimeout,
+	e_GoTimeout,
+	e_StopTimeout,
+	e_WarnTimeout
 } event_t;
 
 typedef struct color_t{
@@ -81,8 +75,6 @@ typedef struct color_t{
 	int blue;
 } color_t;
 
-typedef struct traffic_signal_s traffic_signal_t;
-
 
 /*************************************************************************************************
                                 Function Prototypes
@@ -90,4 +82,32 @@ typedef struct traffic_signal_s traffic_signal_t;
 void state_machine(void);
 
 
+/**
+​ * ​ ​ @brief​ - Function to update event incase of succesfull Capacitive Touch​
+​ *
+​ * ​ ​ @param​ ​ goal:  (color_t) goal color to be set
+ * ​ ​ @param​ ​ goal:  (event_t) event of the statemachine
+​ * ​ ​ @return​ ​ (int) 1 if sucessfull touch , else 0
+​ */
+int cap_touch_action(color_t* goal, event_t* event);
+
+
+/**
+​ * ​ ​ @brief​ - Function to update event incase of succesfull Button Press​
+​ *
+​ * ​ ​ @param​ ​ goal:  (color_t) goal color to be set
+ * ​ ​ @param​ ​ goal:  (event_t) event of the statemachine
+​ * ​ ​ @return​ ​ (int) 1 if sucessfull touch , else 0
+​ */
+int switch_action(color_t* goal, event_t* event);
+
+
+/**
+​ * ​ ​ @brief​ - Compares if two color sets are same​
+​ *
+​ * ​ ​ @param​ ​ color1:  (color_t) First color set
+ * ​ ​ @param​ ​ goal:  (color_t) Second Color Set
+​ * ​ ​ @return​ ​ (int) 1 if sucessfull touch , else 0
+​ */
+int compare_color(color_t color1, color_t color2);
 #endif /* STATEMACHINE_H_ */

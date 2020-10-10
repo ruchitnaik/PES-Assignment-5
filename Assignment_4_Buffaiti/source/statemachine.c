@@ -2,7 +2,7 @@
  * statemachine.c
  *
  *  Created on: Oct 2, 2020
- *      Author: root
+ *      Author: Arpit Savarkar / arpit.savarkar@colorado.edu
  */
 
 
@@ -16,17 +16,16 @@
                                 Global Flags
 *************************************************************************************************/
 volatile double val;
-volatile int flag_break;
-volatile int flag_10msec;
-volatile int flag_100msec;
 volatile int flag_250msec;
 volatile int flag_750msec;
-volatile int flag_1000msec;
-volatile int flag_3000msec;
-volatile int flag_10000msec;
-volatile int flag_TimeoutSec;
 volatile int flag_Switch;
 
+
+/*************************************************************************************************
+                                Functions
+*************************************************************************************************/
+
+/* Structure for Handling */
 struct traffic_light_t{
 	color_t color_go;
 	color_t color_stop;
@@ -34,7 +33,6 @@ struct traffic_light_t{
 	color_t color_crosswalk;
 	state_t state;
 	event_t event;
-	uint32_t Timeout;
 } traffic_light_t  = {
 	.color_go.red   = ((HEX_GO >> 16) & 0xFF),
 	.color_go.green = ((HEX_GO >> 8) & 0xFF),
@@ -50,168 +48,183 @@ struct traffic_light_t{
 	.color_crosswalk.blue  = (HEX_CROSSWALK & 0xFF),
 	.state       = s_STOP,
 	.event       = e_Void,
-	.Timeout     = ROUTINE_TIMEOUT
 };
 
 
+/**
+​ * ​ ​ @brief​ - Function to update event incase of succesfull Capacitive Touch​
+​ *
+​ * ​ ​ @param​ ​ goal:  (color_t) goal color to be set
+ * ​ ​ @param​ ​ goal:  (event_t) event of the statemachine
+​ * ​ ​ @return​ ​ (int) 1 if sucessfull touch , else 0
+​ */
+int cap_touch_action(color_t* goal, event_t* event) {
+	int flag = 0;
+	/* Sets flag if touch detected */
+	flag = CAP_Scan();
+	if(flag) {
+		#ifdef DEBUG
+			PRINTF("\n\r Capacitive Touch Detected at sec_time: %d", now()/1000 );
+		#endif
+		/* Updates the goal color to CROSSWALK color state */
+		*goal = traffic_light_t.color_crosswalk;
+		/* Update event*/
+		*event = e_TransitionTimeout;
+		flag = 0;
+		return 1;
+	}
+	return 0;
+}
+
+
+/**
+​ * ​ ​ @brief​ - Function to update event incase of succesfull Button Press​
+​ *
+​ * ​ ​ @param​ ​ goal:  (color_t) goal color to be set
+ * ​ ​ @param​ ​ goal:  (event_t) event of the statemachine
+​ * ​ ​ @return​ ​ (int) 1 if sucessfull touch , else 0
+​ */
+int switch_action(color_t* goal, event_t* event) {
+
+	if(flag_Switch) {
+		#ifdef DEBUG
+			PRINTF("\n\r Switch Button Detected at sec_time: %d", now()/1000 );
+		#endif
+		/* Update goal color*/
+		*goal = traffic_light_t.color_crosswalk;
+		/* Update event*/
+		*event = e_TransitionTimeout;
+		PORTA->ISFR = 0xffffffff;
+		flag_Switch = 0;
+		return 1;
+	}
+	return 0;
+}
+
+
+/**
+​ * ​ ​ @brief​ - Compares if two color sets are same​
+​ *
+​ * ​ ​ @param​ ​ color1:  (color_t) First color set
+ * ​ ​ @param​ ​ goal:  (color_t) Second Color Set
+​ * ​ ​ @return​ ​ (int) 1 if sucessfull touch , else 0
+​ */
+int compare_color(color_t color1, color_t color2) {
+
+	return (color1.red == color2.red && color1.green == color2.green && color1.blue == color2.blue);
+}
+
+
+/**
+​ * ​ ​ @brief​ - State Machine Function,
+ * 				1) Updates the state and events in accordance to the Timeout for a Traffic Signal
+ * 					with Cross walk.
+ * 				2) Initializes the State with the Stop State​
+​ *
+​ * ​ ​ @param​ ​ none
+​ * ​ ​ @return​ ​ none
+​ */
 void state_machine(void) {
+	/* Intialzing start, goal, current color and new state
+	 * These variables are used all over the state machine to keep track of state
+	 * color - represets the current color set being lit up on the LED */
 	state_t new_state = traffic_light_t.state;
+	event_t event = traffic_light_t.event;
 	color_t start = traffic_light_t.color_stop;
 	color_t goal = traffic_light_t.color_go;
-
-	int flag = 0;
 	color_t color = start;
+	flag_Switch = 0;
 
-#ifdef DEBUG_
-	PRINTF("Initializing Traffic Signal State with State: STOP");
-#endif
+	#ifdef DEBUG
+		PRINTF("\n\r Initializing Traffic Signal Loop with State: STOP");
+	#endif
 
+	// State Machine Infinite Loop Begin
 	while(1) {
 		switch(new_state) {
-
+			// STOP state
 			case s_STOP:
-//				reset_timer();
-				start = traffic_light_t.color_stop;
-				color = traffic_light_t.color_stop;
-				LED_SET(color.red, color.green, color.blue);
-
-				// Timeout Satisfied
-				if(flag_TimeoutSec == 1) {
-					new_state = s_TRANS;
-					goal = traffic_light_t.color_go;
-					flag_TimeoutSec = 0;
-					break;
-				}
-//				flag_Switch = 0;
-				if ( flag_TimeoutSec != 1 ) {
-					// Checks For a Switch
-						if(flag_Switch) {
-
-							new_state = s_TRANS;
-							goal = traffic_light_t.color_crosswalk;
-							flag_Switch = 0;
-							break;
+				// Resets the Timer before State Functionality
+				reset_timer();
+				#ifdef DEBUG
+					PRINTF("\n\r Entering State 'STOP' at sec_time: %d", now()/1000 );
+				#endif
+				start = traffic_light_t.color_stop; // Updates start color to - Stop Color Set
+				goal = traffic_light_t.color_go; // Updates goal color to possible next state color
+				color = traffic_light_t.color_stop; // Current Color to be seen on the LED
+				LED_SET(color.red, color.green, color.blue); // Sets the Color
+				new_state = s_TRANS; // Next State
+				event = e_StopTimeout; // Current Event
+				// Timeout Constraint
+				// Exists the timeout incase of any touch (capacitive/button) with updated event
+				while ((get_timer() < ROUTINE_TIMEOUT) && (event == e_StopTimeout)) {
+					if(get_timer() % 100 == 0) {
+						cap_touch_action(&goal, &event);
+						switch_action(&goal, &event);
 						}
-					flag_Switch = 0;
-				}
-
-				if ( flag_TimeoutSec != 1 ) {
-					flag = 0;
-					// Checks For a Capacitive Touch
-					if( flag_100msec == 1 ) {
-						flag = CAP_Scan();
-						if(flag) {
-							new_state = s_TRANS;
-							goal = traffic_light_t.color_crosswalk;
-							flag_100msec = 0;
-							flag = 0;
-							break;
-						}
-					flag_100msec = 0;
 					}
-
-				}
 				break;
 
+			// GO state
 			case s_GO:
-//				reset_timer();
-				start = traffic_light_t.color_go;
-				color = traffic_light_t.color_go;
-				LED_SET(color.red, color.green, color.blue);
-
-				// Timeout Satisfied
-				if(flag_TimeoutSec == 1) {
-					new_state = s_TRANS;
-					goal = traffic_light_t.color_warn;
-					flag_TimeoutSec = 0;
-					break;
-				}
-
-				if ( flag_TimeoutSec != 1 ) {
-					// Checks For a Switch
-						if(flag_Switch) {
-							new_state = s_TRANS;
-							goal = traffic_light_t.color_crosswalk;
-							flag_100msec = 0;
-							flag_Switch = 0;
-							break;
+				// Resets the Timer before State Functionality
+				reset_timer();
+				#ifdef DEBUG
+					PRINTF("\n\r Entering State 'GO' at sec_time: %d", now()/1000 );
+				#endif
+				start = traffic_light_t.color_go; // Updates start color to - GO Color Set
+				color = traffic_light_t.color_go; // Current Color to be seen on the LED
+				LED_SET(color.red, color.green, color.blue); // Sets the Color
+				new_state = s_TRANS; // Next State
+				goal = traffic_light_t.color_warn;  // Updates goal color to possible next state color
+				event = e_GoTimeout; // Current Event
+				// Timeout Constraint
+				// Exists the timeout incase of any touch (capacitive/button) with updated event
+				while ((get_timer() < ROUTINE_TIMEOUT) && (event == e_GoTimeout)) {
+					if(get_timer() % 100 == 0) {
+						cap_touch_action(&goal, &event);
+						switch_action(&goal, &event);
 						}
-					PORTA->ISFR = 0xffffffff;
-					flag_Switch = 0;
-				}
-
-				if ( flag_TimeoutSec != 1 ) {
-					flag = 0;
-					// Checks For a Capacitive Touch
-					if( flag_100msec == 1 ) {
-						flag = CAP_Scan();
-						if(flag) {
-							new_state = s_TRANS;
-							goal = traffic_light_t.color_crosswalk;
-							flag_100msec = 0;
-							flag = 0;
-							break;
-						}
-					flag_100msec = 0;
 					}
-
-				}
-
 				break;
 
-
+			// WARNING state
 			case s_WARNING:
-//				reset_timer();
-				start = traffic_light_t.color_warn;
-				color = traffic_light_t.color_warn;
-				LED_SET(color.red, color.green, color.blue);
-
-				// Timeout Satisfied
-				if(flag_3000msec == 1) {
-					new_state = s_TRANS;
-					goal = traffic_light_t.color_stop;
-					flag_TimeoutSec = 0;
-					break;
-				}
-
-
-				if ( flag_TimeoutSec != 1 ) {
-					// Checks For a Switch
-						if(flag_Switch) {
-							new_state = s_TRANS;
-							goal = traffic_light_t.color_crosswalk;
-							flag_100msec = 0;
-							flag_Switch = 0;
-							break;
+				// Resets the Timer before State Functionality
+				reset_timer();
+				#ifdef DEBUG
+					PRINTF("\n\r Entering State 'WARNING' at sec_time: %d", now()/1000 );
+				#endif
+				start = traffic_light_t.color_warn; // Updates start color to - WARNING Color Set
+				color = traffic_light_t.color_warn; // Current Color to be seen on the LED
+				LED_SET(color.red, color.green, color.blue); // Sets the Color
+				new_state = s_TRANS; // Next State
+				goal = traffic_light_t.color_stop;  // Updates goal color to possible next state color
+				event = e_WarnTimeout;  // Current Event
+				// Timeout Constraint
+				// Exists the timeout incase of any touch (capacitive/button) with updated event
+				while ((get_timer() < WARN_TIMEOUT) && (event == e_WarnTimeout)) {
+					if(get_timer() % 100 == 0) {
+						cap_touch_action(&goal, &event);
+						switch_action(&goal, &event);
 						}
-					flag_Switch = 0;
-				}
-
-				if ( flag_3000msec != 1 ) {
-					flag = 0;
-					// Checks For a Capacitive Touch
-					if( flag_100msec == 1 ) {
-						flag = CAP_Scan();
-						if(flag) {
-							new_state = s_TRANS;
-							goal = traffic_light_t.color_crosswalk;
-							flag_100msec = 0;
-							flag = 0;
-							break;
-						}
-					flag_100msec = 0;
 					}
-
-				}
 				break;
 
-
+			// CROSSWALK state
 			case s_CROSSWALK:
+				// Resets the Timer before State Functionality
+				reset_timer();
+				new_state = s_TRANS; // Next State
+				start = traffic_light_t.color_crosswalk; // Updates start color to - CROSSWALK Color Set
+				color = traffic_light_t.color_crosswalk; // Current Color to be seen on the LED
+				goal = traffic_light_t.color_go; // Updates goal color to possible next state color
+				#ifdef DEBUG
+					PRINTF("\n\r Entering State 'CROSSWALK' at sec_time: %d", now()/1000 );
+				#endif
 
-				start = traffic_light_t.color_crosswalk;
-				color = traffic_light_t.color_crosswalk;
-
-				while(flag_10000msec != 1) {
+				// Flashing CROSSWALK color state until 10 seconds
+				while(get_timer() < CROSSWALK_TIMEOUT) {
 					if ( flag_750msec == 1 ) {
 						LED_SET(0x00, 0x00, 0x00);
 						}
@@ -219,58 +232,77 @@ void state_machine(void) {
 						LED_SET(color.red, color.green, color.blue);
 					}
 				}
-				flag_10000msec = 0;
 				LED_SET(color.red, color.green, color.blue);
-				new_state = s_TRANS;
-				goal = traffic_light_t.color_go;
-//				reset_timer();
+
+				// Exists to GO_state color set .
 				break;
 
-
-
+			// TRANSITION state
 			case s_TRANS:
-				if(color.green == goal.green && color.red == goal.red && color.blue == goal.blue){
-					goto next;
-				}
-
+				// Resets the Timer before State Functionality
+				reset_timer();
+				#ifdef DEBUG
+					PRINTF("\n\r Smooth Transition Begins at sec_time: %d", now()/1000 );
+				#endif
+				/* Following Functionality Updates the Color set to smoothly transition from the current color set
+				 * Goal Color set, val is updated in the interrupt every 100 Hz
+				 */
 				val = 0;
 				while( val <= 1 ) {
-					if(color.green == goal.green && color.red == goal.red && color.blue == goal.blue){
+					color.blue = (goal.blue - start.blue) * (val) + start.blue ;  // Blue Color TPM updated
+					color.red =  (goal.red - start.red) * (val) + start.red ; // Green Color TPM Updated
+					color.green = (goal.green - start.green) * (val) + start.green ; // Green Color TPM Updated
+					LED_SET(color.red, color.green, color.blue); // Sets the updated colors
+					// Exit Condition Satisfied
+					if (compare_color(color, goal)) {
 						val = 0;
-						goto next;
-					}
-					color.blue = (goal.blue - start.blue) * (val) + start.blue ;
-					color.red =  (goal.red - start.red) * (val) + start.red ;
-					color.green = (goal.green - start.green) * (val) + start.green ;
-					LED_SET(color.red, color.green, color.blue);
-					if(color.green == goal.green && color.red == goal.red && color.blue == goal.blue){
-						val = 0;
-						goto next;
+						break;
 					}
 
 				}
+
+				/* The Following Conditional statements updates the next state depending on the exit color state post
+				 * Transition Loop above
+				 */
 				// Setting Up the new state based on the color set
-				next:
-					if(new_state == s_CROSSWALK) {
+				// If current color set is same as GO state
+				if(compare_color(color, traffic_light_t.color_go)) {
 						new_state = s_GO;
+						#ifdef DEBUG
+							PRINTF("\n\r Smooth Transiton COMPLETE at sec_time: %d, onto State 'GO' ", now()/1000 );
+						#endif
 					}
-					if(color.red == traffic_light_t.color_go.red && color.green == traffic_light_t.color_go.green && color.blue == traffic_light_t.color_go.blue) {
-						new_state = s_GO;
-					}
-					else if(color.red == traffic_light_t.color_stop.red && color.green == traffic_light_t.color_stop.green && color.blue == traffic_light_t.color_stop.blue) {
-						new_state = s_STOP;
-					}
-					else if(color.red == traffic_light_t.color_warn.red && color.green == traffic_light_t.color_warn.green && color.blue == traffic_light_t.color_warn.blue)  {
-						new_state = s_WARNING;
-					}
-					else if(color.red == traffic_light_t.color_crosswalk.red && color.green == traffic_light_t.color_crosswalk.green && color.blue == traffic_light_t.color_crosswalk.blue) {
-						new_state = s_CROSSWALK;
-					}
-					LED_SET(0x00, 0x00, 0x00);
-					reset_timer();
+				// If current color set is same as STOP state
+				else if(compare_color(color, traffic_light_t.color_stop)) {
+					new_state = s_STOP;
+					#ifdef DEBUG
+						PRINTF("\n\r Smooth Transiton COMPLETE at sec_time: %d, onto State 'STOP' ", now()/1000 );
+					#endif
+				}
+				// If current color set is same as WARN state
+				else if(compare_color(color, traffic_light_t.color_warn))  {
+					new_state = s_WARNING;
+					#ifdef DEBUG
+						PRINTF("\n\r Smooth Transiton COMPLETE at sec_time: %d, onto State 'WARNING' ", now()/1000 );
+					#endif
+				}
+				// If current color set is same as CROSSWALK state
+				else if(compare_color(color, traffic_light_t.color_crosswalk)) {
+					new_state = s_CROSSWALK;
+					#ifdef DEBUG
+						PRINTF("\n\r Smooth Transiton COMPLETE at sec_time: %d, onto State 'CROSSWALK' ", now()/1000 );
+					#endif
+				}
+
+				break;
+			// Failure Conditon
+			default :
+				#ifdef DEBUG
+					PRINTF("\n\r State Unknown Failure Condition");
+				#endif
 				break;
 
 		}
-
 	}
+
 }

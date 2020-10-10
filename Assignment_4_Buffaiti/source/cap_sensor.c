@@ -2,12 +2,15 @@
  * cap_sensor.c
  *
  *  Created on: Oct 3, 2020
- *      Author: root
+ *      Author: Arpit Savarkar / arpit.savarkar@colorado.edu
+ *
+ *      Refereneces : (Textbook) Embedded Systems Fundamentals with Arm Cortex-M based MicroControllers
  */
 
 
 #include "MKL25Z4.h"
 #include "cap_sensor.h"
+
 
 
 /* ************************************************************************
@@ -30,9 +33,9 @@ void CAP_Init(void) {
 			TSI_GENCS_TSIEN_MASK | // TSI enable bit
 			TSI_GENCS_STPE_MASK | // Enables TSI in low power mode
 			TSI_GENCS_EOSF_MASK ; // End of scan flag, set to 1 to clear
-//#ifdef DEBUG
-//	PRINTF("\n\r Clock Gating and Initialization of Capacitive Sensor Complete ");
-//#endif
+#ifdef DEBUG
+	PRINTF("\n\r Clock Gating and Initialization of Capacitive Sensor Complete ");
+#endif
 }
 
 
@@ -42,7 +45,7 @@ void CAP_Init(void) {
  *
 ​ * ​ ​ @param​ ​ void
 ​ *
-​ * ​ ​ @return​ ​ Scanned Value with OFFSET Subtracted
+​ * ​ ​ @return​ ​ Boolean if Touch within threshold
 ​ */
 uint16_t CAP_Scan(void) {
 
@@ -60,3 +63,4 @@ uint16_t CAP_Scan(void) {
 	}
 	return 1;
 }
+

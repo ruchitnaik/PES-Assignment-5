@@ -9,6 +9,12 @@
 #include "statemachine.h"
 
 
+/**
+​ * ​ ​ @brief​ ​ This function initializes the Port A clock and MUX for GPIO
+​ *
+​ * ​ ​ @param​ ​ PWM Levels - Described as a period
+​ * ​ ​ @return​ ​ none
+​ */
 void Init_Switch() {
 
 
@@ -29,18 +35,25 @@ void Init_Switch() {
 
 }
 
+
+/**
+​ * ​ ​ @brief​ ​ Interrupt Controller for PORT A
+​ *
+​ * ​ ​ @param​ ​ none
+​ * ​ ​ @return​ ​ none
+​ */
 void PORTA_IRQHandler(void) {
 
 	flag_Switch = 0;
+
+	// ISFR success
 	if ((PORTA->ISFR & MASK(SW1_POS))) {
 		flag_Switch = 0;
 			if (SWITCH_PRESSED(SW1_POS)) { // crosswalk state matched
 				flag_Switch = 1;
 			}
 		}
-//	if (! (PORTA->ISFR & MASK(SW1_POS)) ) {
-//		;
-//	}
 	// clear status flags
 	PORTA->ISFR = 0xffffffff;
 }
+
