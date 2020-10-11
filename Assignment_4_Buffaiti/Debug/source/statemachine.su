@@ -1,4 +1,4 @@
 statemachine.c:61:5:cap_touch_action	32	static
 statemachine.c:87:5:switch_action	24	static
-statemachine.c:112:5:compare_color	32	static
-statemachine.c:127:6:state_machine	72	static
+statemachine.c:113:5:compare_color	32	static
+statemachine.c:128:6:state_machine	72	static

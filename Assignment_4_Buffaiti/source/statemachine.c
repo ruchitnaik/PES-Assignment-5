@@ -98,6 +98,7 @@ int switch_action(color_t* goal, event_t* event) {
 		flag_Switch = 0;
 		return 1;
 	}
+	flag_Switch = 0;
 	return 0;
 }
 
@@ -146,6 +147,7 @@ void state_machine(void) {
 			case s_STOP:
 				// Resets the Timer before State Functionality
 				reset_timer();
+				flag_Switch = 0;
 				#ifdef DEBUG
 					PRINTF("\n\r Entering State 'STOP' at sec_time: %d", now()/1000 );
 				#endif
@@ -160,6 +162,7 @@ void state_machine(void) {
 				while ((get_timer() < ROUTINE_TIMEOUT) && (event == e_StopTimeout)) {
 					if(get_timer() % 100 == 0) {
 						cap_touch_action(&goal, &event);
+//						flag_Switch =0;
 						switch_action(&goal, &event);
 						}
 					}
@@ -169,6 +172,7 @@ void state_machine(void) {
 			case s_GO:
 				// Resets the Timer before State Functionality
 				reset_timer();
+				flag_Switch = 0;
 				#ifdef DEBUG
 					PRINTF("\n\r Entering State 'GO' at sec_time: %d", now()/1000 );
 				#endif
@@ -183,6 +187,7 @@ void state_machine(void) {
 				while ((get_timer() < ROUTINE_TIMEOUT) && (event == e_GoTimeout)) {
 					if(get_timer() % 100 == 0) {
 						cap_touch_action(&goal, &event);
+//						flag_Switch = 0;
 						switch_action(&goal, &event);
 						}
 					}
@@ -192,6 +197,7 @@ void state_machine(void) {
 			case s_WARNING:
 				// Resets the Timer before State Functionality
 				reset_timer();
+				flag_Switch = 0;
 				#ifdef DEBUG
 					PRINTF("\n\r Entering State 'WARNING' at sec_time: %d", now()/1000 );
 				#endif
@@ -206,6 +212,7 @@ void state_machine(void) {
 				while ((get_timer() < WARN_TIMEOUT) && (event == e_WarnTimeout)) {
 					if(get_timer() % 100 == 0) {
 						cap_touch_action(&goal, &event);
+//						flag_Switch = 0;
 						switch_action(&goal, &event);
 						}
 					}

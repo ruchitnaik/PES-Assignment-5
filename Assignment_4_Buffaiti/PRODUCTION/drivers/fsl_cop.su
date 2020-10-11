@@ -1,0 +1,3 @@
+fsl_cop.c:37:6:COP_GetDefaultConfig	0	static
+fsl_cop.c:51:6:COP_Init	8	static
+fsl_cop.c:68:6:COP_Refresh	0	static
