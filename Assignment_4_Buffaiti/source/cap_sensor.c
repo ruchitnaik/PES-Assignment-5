@@ -11,6 +11,11 @@
 #include "MKL25Z4.h"
 #include "cap_sensor.h"
 
+#ifdef DEBUG
+	#define MSG_DEBUG PRINTF
+#else // non-debug mode - get rid of printing message
+	#define MSG_DEBUG(...)
+#endif
 
 
 /* ************************************************************************
@@ -34,7 +39,7 @@ void CAP_Init(void) {
 			TSI_GENCS_STPE_MASK | // Enables TSI in low power mode
 			TSI_GENCS_EOSF_MASK ; // End of scan flag, set to 1 to clear
 #ifdef DEBUG
-	PRINTF("\n\r Clock Gating and Initialization of Capacitive Sensor Complete ");
+		MSG_DEBUG("\n\r Clock Gating and Initialization of Capacitive Sensor Complete ");
 #endif
 }
 

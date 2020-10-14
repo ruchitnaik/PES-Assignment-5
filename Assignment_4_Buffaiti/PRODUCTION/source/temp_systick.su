@@ -1,5 +1,6 @@
-temp_systick.c:34:6:SysTick_Init	0	static
-temp_systick.c:60:12:now	0	static
-temp_systick.c:71:6:reset_timer	0	static
-temp_systick.c:82:12:get_timer	0	static
-temp_systick.c:95:6:SysTick_Handler	24	static
+temp_systick.c:40:6:SysTick_Init	0	static
+temp_systick.c:64:12:now	0	static
+temp_systick.c:75:6:reset_timer	0	static
+temp_systick.c:86:12:get_timer	0	static
+temp_systick.c:99:6:SysTick_Handler	16	static
+temp_systick.c:115:6:Delay	0	static

@@ -41,8 +41,6 @@
                                Global Variables
 *************************************************************************************************/
 extern volatile double val;
-extern volatile int flag_250msec;
-extern volatile int flag_750msec;
 extern volatile int flag_Switch;
 extern volatile uint8_t flag;
 

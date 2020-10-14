@@ -1,2 +1,2 @@
-cap_sensor.c:21:6:CAP_Init	0	static
-cap_sensor.c:50:10:CAP_Scan	0	static
+cap_sensor.c:26:6:CAP_Init	0	static
+cap_sensor.c:55:10:CAP_Scan	0	static

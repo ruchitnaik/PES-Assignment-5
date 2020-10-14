@@ -9,6 +9,13 @@
 #include "fsl_debug_console.h"
 
 
+#ifdef DEBUG
+	#define MSG_DEBUG PRINTF
+#else // non-debug mode - get rid of printing message
+	#define MSG_DEBUG(...)
+#endif
+
+
 /**
 ​ * ​ ​ @brief​ ​ This function initializes the PWM Functionalities and TPM settings for PWM Control
  * 				and clock gating functionalities
@@ -63,9 +70,9 @@ void Init_LED_PWM(uint16_t period) {
 	// Start TPM
 	TPM2->SC |= TPM_SC_CMOD(1);
 	TPM0->SC |= TPM_SC_CMOD(1);
-#ifdef DEBUG
-	PRINTF("\n\r Clock Gating and Initialization of TPM for PORTB and PORTD Complete ");
-#endif
+
+	MSG_DEBUG("\n\r Clock Gating and Initialization of TPM for PORTB and PORTD Complete ");
+
 }
 
 

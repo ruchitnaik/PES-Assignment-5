@@ -8,6 +8,12 @@
 #include "temp_systick.h"
 
 
+#ifdef DEBUG
+	#define MSG_DEBUG PRINTF
+#else // non-debug mode - get rid of printing message
+	#define MSG_DEBUG(...)
+#endif
+
 /*************************************************************************************************
                                 Global Variables
 *************************************************************************************************/
@@ -43,9 +49,7 @@ void SysTick_Init(void) {
 	trans_tick = 0; // Extra Precaution during Initialization
 	Timer_U32 = 0; // Overall CLock - Initialization Precauton
 	g_program_start = g_timer_start = 0;
-#ifdef DEBUG
-	PRINTF("\n\r Clock Gating and Initialization of SysTick Complete ");
-#endif
+	MSG_DEBUG("\n\r Clock Gating and Initialization of SysTick Complete ");
 
 }
 
@@ -106,16 +110,13 @@ void SysTick_Handler(){
 		}
 	}
 
-	/* Functionality which is used to check Blinking required Crosswalk state */
-	if(Timer_U32 % 250 == 0){
-		flag_750msec = 0;
-		flag_250msec = 1;
-	}
+}
 
-	if(Timer_U32 % 750  == 0){
-		flag_250msec = 0;
-		flag_750msec = 1;
-	}
+void Delay (uint32_t Ticks) {
+  uint32_t curr;
+
+  curr = Timer_U32;
+  while ((Timer_U32 - curr) < Ticks);
 }
 
 

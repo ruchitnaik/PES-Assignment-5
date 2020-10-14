@@ -12,6 +12,12 @@
 #include "cap_sensor.h"
 #include "led.h"
 
+#ifdef DEBUG
+	#define MSG_DEBUG PRINTF
+#else // non-debug mode - get rid of printing message
+	#define MSG_DEBUG(...)
+#endif
+
 /*************************************************************************************************
                                 Global Flags
 *************************************************************************************************/
@@ -63,9 +69,7 @@ int cap_touch_action(color_t* goal, event_t* event) {
 	/* Sets flag if touch detected */
 	flag = CAP_Scan();
 	if(flag) {
-		#ifdef DEBUG
-			PRINTF("\n\r Capacitive Touch Detected at sec_time: %d", now()/1000 );
-		#endif
+		MSG_DEBUG("\n\r Capacitive Touch Detected at sec_time: %d", now()/1000 );
 		/* Updates the goal color to CROSSWALK color state */
 		*goal = traffic_light_t.color_crosswalk;
 		/* Update event*/
@@ -87,9 +91,7 @@ int cap_touch_action(color_t* goal, event_t* event) {
 int switch_action(color_t* goal, event_t* event) {
 
 	if(flag_Switch) {
-		#ifdef DEBUG
-			PRINTF("\n\r Switch Button Detected at sec_time: %d", now()/1000 );
-		#endif
+		MSG_DEBUG("\n\r Switch Button Detected at sec_time: %d", now()/1000 );
 		/* Update goal color*/
 		*goal = traffic_light_t.color_crosswalk;
 		/* Update event*/
@@ -136,9 +138,7 @@ void state_machine(void) {
 	color_t color = start;
 	flag_Switch = 0;
 
-	#ifdef DEBUG
-		PRINTF("\n\r Initializing Traffic Signal Loop with State: STOP");
-	#endif
+	MSG_DEBUG("\n\r Initializing Traffic Signal Loop with State: STOP");
 
 	// State Machine Infinite Loop Begin
 	while(1) {
@@ -148,9 +148,7 @@ void state_machine(void) {
 				// Resets the Timer before State Functionality
 				reset_timer();
 				flag_Switch = 0;
-				#ifdef DEBUG
-					PRINTF("\n\r Entering State 'STOP' at sec_time: %d", now()/1000 );
-				#endif
+				MSG_DEBUG("\n\r Entering State 'STOP' at sec_time: %d", now()/1000 );
 				start = traffic_light_t.color_stop; // Updates start color to - Stop Color Set
 				goal = traffic_light_t.color_go; // Updates goal color to possible next state color
 				color = traffic_light_t.color_stop; // Current Color to be seen on the LED
@@ -173,9 +171,7 @@ void state_machine(void) {
 				// Resets the Timer before State Functionality
 				reset_timer();
 				flag_Switch = 0;
-				#ifdef DEBUG
-					PRINTF("\n\r Entering State 'GO' at sec_time: %d", now()/1000 );
-				#endif
+				MSG_DEBUG("\n\r Entering State 'GO' at sec_time: %d", now()/1000 );
 				start = traffic_light_t.color_go; // Updates start color to - GO Color Set
 				color = traffic_light_t.color_go; // Current Color to be seen on the LED
 				LED_SET(color.red, color.green, color.blue); // Sets the Color
@@ -198,9 +194,7 @@ void state_machine(void) {
 				// Resets the Timer before State Functionality
 				reset_timer();
 				flag_Switch = 0;
-				#ifdef DEBUG
-					PRINTF("\n\r Entering State 'WARNING' at sec_time: %d", now()/1000 );
-				#endif
+				MSG_DEBUG("\n\r Entering State 'WARNING' at sec_time: %d", now()/1000 );
 				start = traffic_light_t.color_warn; // Updates start color to - WARNING Color Set
 				color = traffic_light_t.color_warn; // Current Color to be seen on the LED
 				LED_SET(color.red, color.green, color.blue); // Sets the Color
@@ -226,20 +220,17 @@ void state_machine(void) {
 				start = traffic_light_t.color_crosswalk; // Updates start color to - CROSSWALK Color Set
 				color = traffic_light_t.color_crosswalk; // Current Color to be seen on the LED
 				goal = traffic_light_t.color_go; // Updates goal color to possible next state color
-				#ifdef DEBUG
-					PRINTF("\n\r Entering State 'CROSSWALK' at sec_time: %d", now()/1000 );
-				#endif
+				MSG_DEBUG("\n\r Entering State 'CROSSWALK' at sec_time: %d", now()/1000 );
 
 				// Flashing CROSSWALK color state until 10 seconds
 				while(get_timer() < CROSSWALK_TIMEOUT) {
-					if ( flag_750msec == 1 ) {
-						LED_SET(0x00, 0x00, 0x00);
-						}
-					else {
-						LED_SET(color.red, color.green, color.blue);
-					}
+					LED_SET(color.red, color.green, color.blue);
+					Delay(750);
+					LED_SET(0x00, 0x00, 0x00);
+					Delay(250);
 				}
-				LED_SET(color.red, color.green, color.blue);
+
+//				LED_SET(color.red, color.green, color.blue);
 
 				// Exists to GO_state color set .
 				break;
@@ -248,9 +239,7 @@ void state_machine(void) {
 			case s_TRANS:
 				// Resets the Timer before State Functionality
 				reset_timer();
-				#ifdef DEBUG
-					PRINTF("\n\r Smooth Transition Begins at sec_time: %d", now()/1000 );
-				#endif
+				MSG_DEBUG("\n\r Smooth Transition Begins at sec_time: %d", now()/1000 );
 				/* Following Functionality Updates the Color set to smoothly transition from the current color set
 				 * Goal Color set, val is updated in the interrupt every 100 Hz
 				 */
@@ -275,38 +264,28 @@ void state_machine(void) {
 				// If current color set is same as GO state
 				if(compare_color(color, traffic_light_t.color_go)) {
 						new_state = s_GO;
-						#ifdef DEBUG
-							PRINTF("\n\r Smooth Transiton COMPLETE at sec_time: %d, onto State 'GO' ", now()/1000 );
-						#endif
+						MSG_DEBUG("\n\r Smooth Transiton COMPLETE at sec_time: %d, onto State 'GO' ", now()/1000 );
 					}
 				// If current color set is same as STOP state
 				else if(compare_color(color, traffic_light_t.color_stop)) {
 					new_state = s_STOP;
-					#ifdef DEBUG
-						PRINTF("\n\r Smooth Transiton COMPLETE at sec_time: %d, onto State 'STOP' ", now()/1000 );
-					#endif
+					MSG_DEBUG("\n\r Smooth Transiton COMPLETE at sec_time: %d, onto State 'STOP' ", now()/1000 );
 				}
 				// If current color set is same as WARN state
 				else if(compare_color(color, traffic_light_t.color_warn))  {
 					new_state = s_WARNING;
-					#ifdef DEBUG
-						PRINTF("\n\r Smooth Transiton COMPLETE at sec_time: %d, onto State 'WARNING' ", now()/1000 );
-					#endif
+					MSG_DEBUG("\n\r Smooth Transiton COMPLETE at sec_time: %d, onto State 'WARNING' ", now()/1000 );
 				}
 				// If current color set is same as CROSSWALK state
 				else if(compare_color(color, traffic_light_t.color_crosswalk)) {
 					new_state = s_CROSSWALK;
-					#ifdef DEBUG
-						PRINTF("\n\r Smooth Transiton COMPLETE at sec_time: %d, onto State 'CROSSWALK' ", now()/1000 );
-					#endif
+					MSG_DEBUG("\n\r Smooth Transiton COMPLETE at sec_time: %d, onto State 'CROSSWALK' ", now()/1000 );
 				}
 
 				break;
 			// Failure Conditon
 			default :
-				#ifdef DEBUG
-					PRINTF("\n\r State Unknown Failure Condition");
-				#endif
+				MSG_DEBUG("\n\r State Unknown Failure Condition");
 				break;
 
 		}

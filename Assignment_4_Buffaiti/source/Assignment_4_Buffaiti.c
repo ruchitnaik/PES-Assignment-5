@@ -54,6 +54,7 @@
   Textbooks : Embedded Systems Fundamentals with Arm Cortex-M based MicroControllers
   I would like to thank the SA's of the course Rakesh Kumar, Saket Penurkar and Howdy Pierece for their
   support to gain a deeper insight into State Machine Application
+  I would also like to thank Fanghao Chan for the code review
 */
 
 
@@ -73,10 +74,18 @@
 #include "switch.h"
 #include "cap_sensor.h"
 
+#ifdef DEBUG
+	#define MSG_DEBUG PRINTF
+#else // non-debug mode - get rid of printing message
+	#define MSG_DEBUG(...)
+#endif
 /* TODO: insert other definitions and declarations here. */
 /*
+ *
  * @brief   Application entry point.
  */
+
+
 int main(void) {
 
   	/* Init board hardware. */
@@ -96,9 +105,7 @@ int main(void) {
     /* Initializes Clock and related functionalities and TPM Setting s for using PORTB and PORTD under PWM settings to
      * operate the Red, Green and Blue LEDS's */
     Init_LED_PWM(PWM_PERIOD);
-#ifdef DEBUG
-	PRINTF("\n\r Entering Into the State Machine");
-#endif
+    MSG_DEBUG("\n\r Entering Into the State Machine");
 	// Enters into the State Machine Function
     state_machine();
     return 0 ;

@@ -90,4 +90,13 @@ void reset_timer();
 ​ */
 ticktime_t get_timer();
 
+
+/**
+​ * ​ ​ @brief​ ​ Delays for a particular period of time
+​ *
+​ * ​ ​ @param​ ​ none
+​ * ​ ​ @return​ ​ Integer - Number of Ticks
+​ */
+void Delay (uint32_t Ticks);
+
 #endif /* TEMP_SYSTICK_H_ */
